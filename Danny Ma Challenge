@@ -1,0 +1,86 @@
+-- How many pizzas were ordered?
+select count(order_id) as TotalOrders
+from customer_orders;
+
+-- How many unique customer orders were made?
+select count (distinct order_id) as UniqueOrders
+from customer_orders;
+
+-- How many orders were successfully delivered by each runner?
+select runner_id, count(runner_id) as SuccessfulOrders
+from runner_orders
+group by runner_id, cancellation
+having cancellation = 'null'
+
+-- How many of each type of pizza was delivered?
+select t1.pizza_id, count(t1.order_id) as Total_Pizza_No
+from customer_orders t1
+full join runner_orders t3
+on t1.order_id = t3.order_id
+group by pizza_id, cancellation
+having cancellation = 'null';
+
+-- How many Vegetarian and Meatlovers were ordered by each customer?
+select t2.pizza_name, count(t1.order_id) as Total_Pizza_No
+from customer_orders t1
+full join pizza_names t2
+on t1.pizza_id = t2.pizza_id
+group by pizza_name;
+
+-- What was the maximum number of pizzas delivered in a single order?
+select count(t3.pickup_time) Total_orders
+from customer_orders t1
+full join runner_orders t3
+on t1.order_id = t3.order_id
+group by pickup_time, cancellation
+having cancellation = 'null'
+order by Total_orders desc;
+
+-- For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+Select count(t1.order_id) Atleast_1_Change
+from customer_orders t1
+full join runner_orders t3
+on t1.order_id = t3.order_id
+where exclusions <> 'null' or extras <> 'null';
+
+Select count(t1.order_id) No_Change
+from customer_orders t1
+full join runner_orders t3
+on t1.order_id = t3.order_id
+where exclusions = 'null' and extras = 'null';
+
+-- How many pizzas were delivered that had both exclusions and extras?
+Select count(t1.order_id) Contains_Both
+from customer_orders t1
+full join runner_orders t3
+on t1.order_id = t3.order_id
+where exclusions <> 'null' and extras <> 'null';
+
+-- What was the total volume of pizzas ordered for each hour of the day?
+SELECT Case
+when EXTRACT(HOUR FROM order_time) = 11 then '11a.m'
+when EXTRACT(HOUR FROM order_time) = 18 then '6p.m'
+when EXTRACT(HOUR FROM order_time) = 19 then '7p.m'
+when EXTRACT(HOUR FROM order_time) = 13 then '1p.m'
+when EXTRACT(HOUR FROM order_time) = 21 then '9p.m'
+else '11p.m'
+end as Order_hour
+, count(order_id) AS total_pizza_volume
+FROM customer_orders
+GROUP BY EXTRACT(HOUR FROM order_time)
+ORDER BY total_pizza_volume desc;
+
+-- What was the volume of orders for each day of the week?
+SELECT case
+when EXTRACT(Day FROM order_time) = 1 then '1st'
+when EXTRACT(Day FROM order_time) = 2 then '2nd'
+when EXTRACT(Day FROM order_time) = 4 then '4th'
+when EXTRACT(Day FROM order_time) = 8 then '8th'
+when EXTRACT(Day FROM order_time) = 9 then '9th'
+when EXTRACT(Day FROM order_time) = 10 then '10th'
+else '11th'
+end order_day
+, count(order_id) AS pizza_volume
+FROM customer_orders
+GROUP BY EXTRACT(day FROM order_time)
+ORDER BY pizza_volume desc;
